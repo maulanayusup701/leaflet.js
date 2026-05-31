@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+  <!-- === META DASAR === -->
+  <title>Leaflet Map</title>
+  <meta name="description"
+    content="Peta interaktif dengan marker lokasi menarik, fitur pencarian, dan geolokasi. Temukan tempat favorit Anda.">
+  <meta name="keywords" content="peta interaktif, marker lokasi menarik, fitur pencarian, geolokasi">
+  <meta name="author" content="Yusup">
+  <meta name="robots" content="index, follow">
+  <meta name="language" content="Indonesian">
+  <meta name="theme-color" content="#2563eb">
+
+  <!-- === OPEN GRAPH / FACEBOOK === -->
+  <meta property="og:title" content="Peta Interaktif">
+  <meta property="og:description"
+    content="Peta interaktif dengan marker lokasi menarik, fitur pencarian, dan geolokasi. Temukan tempat favorit Anda.">
+  <meta property="og:image" content="https://via.placeholder.com/1200x630/2563eb/ffffff?text=Peta">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="Peta Interaktif">
+  <meta property="og:url" content="https://leaflet-js-yusup701.vercel.app/">
+  <meta property="og:type" content="website">
+  <meta property="og:locale" content="id_ID">
+  <meta property="og:site_name" content="Interactive Map">
+
+  <!-- === TWITTER CARD === -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:site" content="">
+  <meta name="twitter:creator" content="@yusup">
+  <meta name="twitter:title" content="Peta Interaktif">
+  <meta name="twitter:description"
+    content="Peta interaktif dengan marker lokasi menarik, fitur pencarian, dan geolokasi. Temukan tempat favorit Anda.">
+  <meta name="twitter:image" content="https://via.placeholder.com/1200x630/2563eb/ffffff?text=Peta">
+  <meta name="twitter:image:alt" content="Screenshot Peta">
+
+  <!-- === LINK CANONICAL === -->
+  <link rel="canonical" href="https://leaflet-js-yusup701.vercel.app/">
+
+  <!-- === WHATSAPP / TELEGRAM PREVIEW === -->
+  <meta property="og:image:type" content="image/png">
+
+  <!-- === APPLE TOUCH ICON === -->
+  <link rel="apple-touch-icon" sizes="180x180"
+    href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%232563eb'/%3E%3Ctext x='50' y='67' font-size='50' text-anchor='middle' fill='white' font-weight='bold'%3EM%3C/text%3E%3C/svg%3E">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Peta">
+
+  <!-- === ANDROID CHROME === -->
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="application-name" content="Map">
+
+  <!-- === MICROSOFT TILE === -->
+  <meta name="msapplication-TileColor" content="#2563eb">
+  <meta name="msapplication-TileImage"
+    content="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%232563eb'/%3E%3Ctext x='50' y='67' font-size='50' text-anchor='middle' fill='white'%3EM%3C/text%3E%3C/svg%3E">
+
+  <!-- === DC (Dublin Core) === -->
+  <meta name="dc.creator" content="Yusup">
+  <meta name="dc.language" content="id">
+  <meta name="dc.title" content="Peta Interaktif">
+  <meta name="dc.description" content="Peta interaktif">
+
+  <!-- Leaflet CSS + JS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            'sans': ['system-ui', 'Segoe UI', 'Roboto', 'sans-serif']
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    .leaflet-control-container .leaflet-top,
+    .leaflet-control-container .leaflet-bottom {
+      z-index: 400;
+    }
+
+    .custom-scroll::-webkit-scrollbar {
+      width: 4px;
+    }
+
+    .custom-scroll::-webkit-scrollbar-track {
+      background: #f1f1f1;
+      border-radius: 8px;
+    }
+
+    .custom-scroll::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 8px;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: scale(0.96);
+      }
+
+      to {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+  </style>
+</head>
+
+<body class="overflow-hidden m-0 p-0 antialiased">
+
+  <div id="map" class="fixed inset-0 w-full h-full z-0"></div>
+
+  <!-- floating panel -->
+  <div class="fixed top-4 right-4 w-80 z-50 flex flex-col gap-2 max-h-[calc(100vh-2rem)] overflow-y-auto custom-scroll">
+    <!-- card search -->
+    <div class="bg-white/95 backdrop-blur-sm rounded-2xl border border-gray-200/80 shadow-xl overflow-hidden">
+      <div class="flex gap-2 p-3">
+        <input type="text" id="sInput"
+          class="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition bg-white text-gray-800"
+          placeholder="Cari lokasi...">
+        <button id="sBtn"
+          class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded-xl text-sm shadow-sm transition-all active:scale-95">Cari</button>
+      </div>
+      <div id="sResults" class="border-t border-gray-100 max-h-48 overflow-y-auto hidden custom-scroll bg-white"></div>
+    </div>
+
+    <!-- info panel & marker counter -->
+    <div class="bg-white/95 backdrop-blur-sm rounded-2xl border border-gray-200/80 shadow-xl overflow-hidden">
+      <div
+        class="text-[11px] font-bold tracking-wide text-slate-400 uppercase px-4 pt-3 pb-1.5 border-b border-gray-100">
+        Informasi marker</div>
+      <div id="info" class="px-4 py-3 text-sm text-slate-500 min-h-[68px] leading-relaxed"><span
+          class="text-slate-400">Klik marker untuk melihat detail</span></div>
+      <div class="flex justify-between items-center text-sm px-4 py-2.5 border-t border-gray-100 text-slate-500">
+        <span>Total marker</span>
+        <b id="cnt" class="text-blue-600 text-base">0</b>
+      </div>
+    </div>
+
+    <!-- quick locations & actions -->
+    <div class="bg-white/95 backdrop-blur-sm rounded-2xl border border-gray-200/80 shadow-xl overflow-hidden">
+      <div
+        class="text-[11px] font-bold tracking-wide text-slate-400 uppercase px-4 pt-3 pb-1.5 border-b border-gray-100">
+        Lokasi cepat</div>
+      <div class="p-2.5 flex flex-col gap-2">
+        <button onclick="addByCoord(-6.5569,107.4432,'Pusat Kota Purwakarta')"
+          class="text-left w-full px-3 py-2 text-sm bg-slate-50 hover:bg-blue-50 border border-gray-200 rounded-xl text-gray-700 hover:text-blue-700 hover:border-blue-200 transition-all">
+          Pusat Kota Purwakarta
+        </button>
+        <button onclick="addByCoord(-6.5601,107.4478,'Situ Buleud')"
+          class="text-left w-full px-3 py-2 text-sm bg-slate-50 hover:bg-blue-50 border border-gray-200 rounded-xl text-gray-700 hover:text-blue-700 hover:border-blue-200 transition-all">
+          Situ Buleud
+        </button>
+        <button onclick="addByCoord(-6.5255,107.3879,'Waduk Jatiluhur')"
+          class="text-left w-full px-3 py-2 text-sm bg-slate-50 hover:bg-blue-50 border border-gray-200 rounded-xl text-gray-700 hover:text-blue-700 hover:border-blue-200 transition-all">
+          Waduk Jatiluhur
+        </button>
+        <button onclick="addByCoord(-6.5572,107.4428,'Masjid Agung Purwakarta')"
+          class="text-left w-full px-3 py-2 text-sm bg-slate-50 hover:bg-blue-50 border border-gray-200 rounded-xl text-gray-700 hover:text-blue-700 hover:border-blue-200 transition-all">
+          Masjid Agung Purwakarta
+        </button>
+      </div>
+
+      <!-- TOMBOL DALAM 1 BARIS: Lokasi saya + Hapus semua marker -->
+      <div class="p-2.5 pt-0 flex flex-row gap-2">
+        <button onclick="myLoc()"
+          class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 rounded-xl text-sm shadow-sm transition-all">
+          Lokasi saya
+        </button>
+        <button onclick="clearAll()"
+          class="flex-1 bg-red-500 hover:bg-red-600 text-white font-semibold py-2.5 rounded-xl text-sm shadow-sm transition-all">
+          Hapus semua
+        </button>
+      </div>
+
+      <!-- FOOTER DENGAN AUTHOR YUSUP -->
+      <div class="border-t border-gray-100 px-4 py-2.5 text-center text-xs text-slate-400">
+        Dibuat oleh <span class="font-semibold text-slate-500">Yusup</span> | 2026
+      </div>
+    </div>
+  </div>
+
+  <!-- modal overlay -->
+  <div id="mLayer"
+    class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[900] hidden transition-all duration-200">
+    <div id="mBox" class="bg-white rounded-2xl shadow-2xl w-80 p-5 animate-[fadeIn_0.2s_ease]"></div>
+  </div>
+
+  <!-- toast -->
+  <div id="toast"
+    class="fixed bottom-6 left-1/2 -translate-x-1/2 bg-gray-900/95 text-white text-sm px-5 py-2.5 rounded-full z-[1000] opacity-0 transition-opacity duration-300 pointer-events-none whitespace-nowrap shadow-lg backdrop-blur-sm">
+  </div>
+
+  <script>
+    var map = L.map('map').setView([-6.5569, 107.4432], 13);
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: 'OpenStreetMap | Dibuat oleh Yusup',
+      maxZoom: 19
+    }).addTo(map);
+    L.control.scale({ metric: true, imperial: false, position: 'bottomleft' }).addTo(map);
+    map.zoomControl.setPosition('bottomright');
+
+    var markers = [];
+    var nid = 0;
+
+    function toast(msg) {
+      var t = document.getElementById('toast');
+      t.textContent = msg;
+      t.classList.add('opacity-100', '!opacity-100');
+      setTimeout(function () {
+        t.classList.remove('opacity-100', '!opacity-100');
+      }, 2300);
+    }
+
+    function setCount() {
+      document.getElementById('cnt').textContent = markers.length;
+    }
+
+    function showModal(title, sub, onOk) {
+      var overlay = document.getElementById('mLayer');
+      var box = document.getElementById('mBox');
+      box.innerHTML = `
+        <div class="text-lg font-bold text-gray-800 mb-1">${escapeHtml(title)}</div>
+        <div class="text-sm text-gray-500 break-words mb-5">${escapeHtml(sub)}</div>
+        <div class="flex gap-3">
+          <button id="mc" class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold py-2 rounded-xl transition">Batal</button>
+          <button id="mk" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 rounded-xl transition">Tambahkan</button>
+        </div>
+      `;
+      overlay.classList.remove('hidden');
+      overlay.classList.add('flex');
+      document.getElementById('mc').onclick = function () {
+        overlay.classList.add('hidden');
+        overlay.classList.remove('flex');
+      };
+      document.getElementById('mk').onclick = function () {
+        overlay.classList.add('hidden');
+        overlay.classList.remove('flex');
+        onOk();
+      };
+      overlay.onclick = function (e) {
+        if (e.target === overlay) {
+          overlay.classList.add('hidden');
+          overlay.classList.remove('flex');
+        }
+      };
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return str.replace(/[&<>]/g, function (m) {
+        if (m === '&') return '&amp;';
+        if (m === '<') return '&lt;';
+        if (m === '>') return '&gt;';
+        return m;
+      });
+    }
+
+    function addMarker(lat, lng, title, desc) {
+      var marker = L.marker([lat, lng]).addTo(map);
+      var id = nid++;
+      var popupContent = `
+        <div style="min-width:160px; font-size:13px; line-height:1.5; font-family:system-ui;">
+          <strong style="font-size:14px; display:block; margin-bottom:4px;">${escapeHtml(title)}</strong>
+          <span style="color:#4b5563">${escapeHtml(desc)}</span><br/>
+          <small style="color:#9ca3af">${lat.toFixed(4)}, ${lng.toFixed(4)}</small><br/>
+          <button onclick="window.rem(${id})" style="margin-top:8px; background:#ef4444; color:white; padding:4px 12px; border-radius:20px; border:none; cursor:pointer; font-size:12px; font-weight:600;">Hapus</button>
+        </div>
+      `;
+      marker.bindPopup(popupContent);
+      marker.on('click', function () {
+        document.getElementById('info').innerHTML = `
+          <p class="text-sm font-semibold text-gray-800 mb-1">${escapeHtml(title)}</p>
+          <p class="text-xs text-slate-500 mb-1.5">${escapeHtml(desc)}</p>
+          <p class="text-[11px] text-slate-400">${lat.toFixed(5)}, ${lng.toFixed(5)}</p>
+        `;
+      });
+      markers.push({ id: id, m: marker });
+      setCount();
+      marker.openPopup();
+      map.setView([lat, lng], 14);
+      toast('"' + title + '" ditambahkan');
+    }
+
+    window.rem = function (id) {
+      var idx = markers.findIndex(function (x) { return x.id === id; });
+      if (idx !== -1) {
+        map.removeLayer(markers[idx].m);
+        markers.splice(idx, 1);
+        setCount();
+        toast('Marker dihapus');
+      }
+      if (markers.length === 0) {
+        document.getElementById('info').innerHTML = '<span class="text-slate-400">Klik marker untuk melihat detail</span>';
+      }
+    };
+
+    window.addByCoord = function (lat, lng, name) {
+      addMarker(lat, lng, name, 'Lokasi: ' + name);
+    };
+
+    window.clearAll = function () {
+      if (!markers.length) {
+        toast('Tidak ada marker');
+        return;
+      }
+      markers.forEach(function (x) { map.removeLayer(x.m); });
+      markers = [];
+      nid = 0;
+      setCount();
+      document.getElementById('info').innerHTML = '<span class="text-slate-400">Klik marker untuk melihat detail</span>';
+      toast('Semua marker dihapus');
+    };
+
+    window.myLoc = function () {
+      if (!navigator.geolocation) {
+        toast('Geolocation tidak didukung browser ini');
+        return;
+      }
+      navigator.geolocation.getCurrentPosition(
+        function (pos) {
+          var lat = pos.coords.latitude;
+          var lng = pos.coords.longitude;
+          map.setView([lat, lng], 14);
+          showModal('Tandai lokasi saya?', lat.toFixed(5) + ', ' + lng.toFixed(5), function () {
+            addMarker(lat, lng, 'Lokasi Saya', new Date().toLocaleString('id-ID'));
+          });
+        },
+        function () {
+          toast('Gagal mengambil lokasi, pastikan izin diberikan');
+        }
+      );
+    };
+
+    // click on map -> add marker with modal
+    map.on('click', function (e) {
+      var lat = e.latlng.lat;
+      var lng = e.latlng.lng;
+      showModal('Tambah marker?', lat.toFixed(5) + ', ' + lng.toFixed(5), function () {
+        addMarker(lat, lng, 'Lokasi ' + (markers.length + 1), 'Ditambahkan secara manual');
+      });
+    });
+
+    // NOMINATIM SEARCH
+    async function doSearch(query) {
+      var q = query.trim();
+      if (!q) return;
+      var resultsDiv = document.getElementById('sResults');
+      resultsDiv.style.display = 'block';
+      resultsDiv.innerHTML = '<div class="px-3 py-2 text-sm text-slate-400">Mencari...</div>';
+      try {
+        var url = 'https://nominatim.openstreetmap.org/search?q=' + encodeURIComponent(q) + '&format=json&limit=5&countrycodes=id';
+        var resp = await fetch(url);
+        var data = await resp.json();
+        if (!data.length) {
+          resultsDiv.innerHTML = '<div class="px-3 py-2 text-sm text-slate-500">Tidak ditemukan</div>';
+          return;
+        }
+        resultsDiv.innerHTML = '';
+        data.forEach(function (item) {
+          var name = item.display_name.split(',')[0] || item.display_name;
+          var addrShort = item.display_name.substring(0, 70);
+          var div = document.createElement('div');
+          div.className = 'px-3 py-2.5 border-b border-gray-100 hover:bg-slate-50 cursor-pointer transition';
+          div.innerHTML = `
+            <div class="font-semibold text-gray-800 text-sm">${escapeHtml(name)}</div>
+            <div class="text-[11px] text-slate-400 mt-0.5 truncate">${escapeHtml(addrShort)}</div>
+          `;
+          div.onclick = function () {
+            var lat = parseFloat(item.lat);
+            var lng = parseFloat(item.lon);
+            map.flyTo([lat, lng], 14);
+            resultsDiv.style.display = 'none';
+            document.getElementById('sInput').value = name;
+            showModal('Tambah marker?', escapeHtml(name), function () {
+              addMarker(lat, lng, name, 'Hasil pencarian');
+            });
+          };
+          resultsDiv.appendChild(div);
+        });
+      } catch (err) {
+        console.warn(err);
+        resultsDiv.innerHTML = '<div class="px-3 py-2 text-sm text-red-500">Gagal mencari lokasi</div>';
+      }
+    }
+
+    document.getElementById('sBtn').onclick = function () {
+      doSearch(document.getElementById('sInput').value);
+    };
+    document.getElementById('sInput').addEventListener('keypress', function (e) {
+      if (e.key === 'Enter') doSearch(this.value);
+    });
+
+    document.addEventListener('click', function (e) {
+      var results = document.getElementById('sResults');
+      var input = document.getElementById('sInput');
+      var btn = document.getElementById('sBtn');
+      if (!results.contains(e.target) && e.target !== input && e.target !== btn) {
+        results.style.display = 'none';
+      }
+    });
+
+    // preload initial markers (3 iconic places)
+    setTimeout(function () {
+      addMarker(-6.5569, 107.4432, 'Pusat Kota Purwakarta', 'Ibu Kota Kabupaten Purwakarta');
+      addMarker(-6.5601, 107.4478, 'Situ Buleud', 'Danau buatan ikonik Purwakarta');
+      addMarker(-6.5572, 107.4428, 'Masjid Agung Purwakarta', 'Masjid utama Kabupaten Purwakarta');
+    }, 400);
+  </script>
+</body>
+
+</html>
